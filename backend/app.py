@@ -59,7 +59,7 @@ def get_based_album():
         album_list = str(album_list)
 
         response = co.chat(
-            message="Don't write dots. Recommend only the name of the album from the following list considering that the result goes in a json, so result can't have special characters like this: {'Name': 'response', 'Reason': 'response'} and "+prompt +". List= "+album_list
+            message='Do not write dots. Recommend only the name of the album from the following list considering that the result goes in a json, so result can not have special characters like this: {"Name": "response", "Reason": "response"} and '+prompt +'. List= '+album_list
         )
         response_text = response.text.strip()
         final_response = {"recommended_album": response_text}
@@ -68,6 +68,7 @@ def get_based_album():
             name = response_json["Name"]
             description = obtener_descripcion_album(name,"data.json")
             final_response.update(description)
+
         return jsonify(final_response)
 
 

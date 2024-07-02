@@ -13,12 +13,22 @@
                     </div>
                 </div>
                 <div class="right-content">
-                    <div :style="loadingData ? 'display: none;' : 'display: flex;'" class="genius-block">
-                        <img class="genius" src="images/genio-ready.png" alt="genius-start">
-                    </div>
-                    <div :style="loadingData ? 'display: flex;' : 'display: none;'" class="genius-block">
-                        <img class="genius" src="images/genio-pensando.png" alt="genius-pensando">
-                    </div>
+                    <transition v-if="!loadingData && !LoadedData" name="fade">
+                        <div v-if="!loadingData && !LoadedData" class="genius-block">
+                            <img class="genius" src="images/genio-ready.png" alt="genius-start">
+                        </div>
+                    </transition>
+                    <!-- Div para la imagen genio pensando -->
+                    <transition v-if="loadingData" name="fade">
+                        <div v-if="loadingData" class="genius-block">
+                            <img class="genius" src="images/genio-pensando.png" alt="genius-pensando">
+                        </div>
+                    </transition>
+                    <transition v-if="LoadedData" name="fade">
+                        <div v-if="LoadedData" class="genius-block">
+                            <img class="genius" src="images/genio-rock.png" alt="genius-pensando">
+                        </div>
+                    </transition>
                 </div>
             </div>
             <div class="searchBar">
@@ -69,7 +79,8 @@ export default {
             suggestions: ['Radiohead', 'Portishead', 'Rammstein', 'Taylor Swift'],
             query: "",
             filteredSuggestions: [],
-            loadingData:false
+            loadingData:false,
+            LoadedData:false
         }
         
     },
@@ -80,11 +91,13 @@ export default {
         this.apiService =  new apiService;
 	},
 	mounted() {
-
+        this.index=0
+        this.displayedText = ""
         this.typeText();
     },
     methods: {
         typeText() {
+
             if (this.index < this.fullText.length) {
                 this.displayedText += this.fullText.charAt(this.index);
                 this.index++;
@@ -112,14 +125,30 @@ export default {
                 this.loadingData = true; // Establecer loadingData en true antes de la llamada a la API
                 const apiCall = this.apiService.getBasedAlbum(this.query, this.textAreaValue);
                 const delay = new Promise(resolve => setTimeout(resolve, 3000));
+                this.index=0
+                this.displayedText = ""
+                this.fullText = "Jummmm..."
+                this.typeText()
 
                 try {
                     const response = await Promise.all([apiCall, delay]);
                     console.log(response[0]); // La respuesta de la API está en response[0]
+                    let recommendedAlbum = response[0]["recommended_album"]
+                    recommendedAlbum = JSON.parse(recommendedAlbum)
+                    if(response[0] && typeof response[0] === 'object' && Object.prototype.hasOwnProperty.call(response[0], 'Description')){
+                        this.fullText="I recommend you the album "+ recommendedAlbum["Name"] + " because " + recommendedAlbum["Reason"] + "\nFurthermore, " + response[0]["Description"]
+                    }else{
+                        this.fullText="I recommend you the album "+ recommendedAlbum["Name"] + " because " + recommendedAlbum["Reason"]
+                    }
+                    
+                    this.index=0
+                    this.displayedText = ""
+                    this.typeText()
                 } catch (error) {
                     console.error('Error fetching album data:', error);
                 } finally {
                     this.loadingData = false; // Establecer loadingData en false después de que se completen la llamada a la API y el temporizador
+                    this.LoadedData = true
                 }
             }
         }
@@ -206,11 +235,20 @@ export default {
         align-items: center;
     }
 
-    .genius{
+    .genius {
         width: 100%;
         height: 100%;
         background-size: cover;
         background-repeat: no-repeat;
+    }
+
+    /* Transiciones de opacidad */
+    .fade-enter-active, .fade-leave-active {
+        transition: opacity 1s;
+    }
+
+    .fade-enter, .fade-leave-to {
+        opacity: 0;
     }
 
     .searchBar{
