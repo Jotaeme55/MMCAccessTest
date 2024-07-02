@@ -1,0 +1,4 @@
+Escoge canciones de la lista de canciones que te voy a pasar en base a los siguientes puntos:
+-si no hay numero de canciones que pidan siempre escoge una
+-Devuelve solo canciones de la lista que te voy a pasar
+-Es importante que hagas caso al siguiente punto, pero en el caso de que no se pueda haz caso a los puntos anteriores
