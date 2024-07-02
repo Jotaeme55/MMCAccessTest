@@ -1,24 +1,42 @@
 <template> 
-    <Toast />
     <!-- intro -->
     <section class="intro" :style="fondoIntro" >
+        <Toast />
         <div class="card-intro">
             <div class="title">
                 <h1>GenieTunes: Magic Search with Autocomplete</h1>
             </div>
             <div class="content">
-                <div class="left-content" :style="fondoNube">
-
+                <div class="left-content" >
+                    <div class="cloud">
+                        <p style="font-size:larger">{{displayedText}}</p>
+                    </div>
                 </div>
                 <div class="right-content">
-                    <div class="genius-block">
+                    <div :style="loadingData ? 'display: none;' : 'display: flex;'" class="genius-block">
                         <img class="genius" src="images/genio-ready.png" alt="genius-start">
+                    </div>
+                    <div :style="loadingData ? 'display: flex;' : 'display: none;'" class="genius-block">
+                        <img class="genius" src="images/genio-pensando.png" alt="genius-pensando">
                     </div>
                 </div>
             </div>
             <div class="searchBar">
-                <h4 style="margin-right: 20px;">Search for a song</h4>
-                <Textarea v-model="value" rows="5" cols="30" />
+                <h4 style="margin-right: 20px;">Select a singer or group</h4>
+                <div class="autocomplete-container" style="margin-right: 20px; position: relative;">
+                    <input type="text" v-model="query" @input="updateSuggestions" placeholder="Type to search..." class="autocomplete-input"/>
+                    <ul v-if="filteredSuggestions.length" class="suggestions-list">
+                        <li v-for="(suggestion, index) in filteredSuggestions" :key="index" @click="selectSuggestion(suggestion)">
+                            {{ suggestion }}
+                        </li>
+                    </ul>
+                    <Button @click="toggleSuggestions" class="autocomplete-button"><i class="pi pi-arrow-down"></i></Button>
+                </div>
+
+                <h4 style="margin-right: 20px;">Tell me anything relevant</h4>
+                <textarea style="margin-right: 20px;" v-model="textAreaValue" rows="5" cols="30"></textarea>
+
+                <Button label="Submit" @click="searchAlbum" />
             </div>
         </div>
     </section>
@@ -32,6 +50,7 @@
 
 <script>
 import UserService from "../service/UserService";
+import apiService from "../service/apiService";
 export default {
 	data() {
         return {
@@ -42,54 +61,65 @@ export default {
             fondoCamera: {backgroundImage: "url(./images/camera.png)"},
             fondoDesign: {backgroundImage: "url(./images/design.png)"},
             fondoClients: { backgroundImage: "url(./images/clients.png)" },
-            fondoContactUs: {backgroundImage: "url(./images/contact-us.png)"},
-            currentSlide: 0,
-            textos: [
-                "No me aclaraba con mi proyecto, tenia muchas ideas pero no canseguía avanzar. Gracias a BeeLasy en minutos tenia todo el desarrollo.",
-                "Como vi q costaba tan poco pensé que no perdía mucho. Aprobé con notaza.",
-                "Me la recomendó un compañero de clase y se quedó cortísimo, rapidísimo.",
-                "Estaba super agobiada con montones de exámenes y ya no me daba tiempo para nada, un sobre super guay.",
-                "Entre la casa, el trabajo, la familia y los estudios estaba pensando en tirar la toalla, y me hablaron de BeeLasy. El mejor consejo de mi vida.",
-            ],
-            autores: [
-                "Marcos de León- Empresariales",
-                "Álvaro Sevilla - Psicología",
-                "Gorka Sevilla - Psicología",
-                "Esther - Bachillerato Segovia",
-                "Ana - Filología",
-            ],
-            nombre:"",
-            message:"",
-            email:"",
+            fullText: "Hello, I’m the music genie! Tell me a band or artist and something relevant about you or them, and I’ll reveal one of their albums that matches it!",
+            displayedText: "",
+            index: 0,
+            typingSpeed: 30, // Ajusta la velocidad de escritura aquí,
+            textAreaValue: '',
+            suggestions: ['Radiohead', 'Portishead', 'Rammstein', 'Taylor Swift'],
+            query: "",
+            filteredSuggestions: [],
+            loadingData:false
         }
         
     },
+    apiService: null,
     userService: null,
     async created() {
         this.userService = new UserService;
+        this.apiService =  new apiService;
 	},
 	mounted() {
 
-        setInterval(this.nextSlide, 5000);
+        this.typeText();
     },
     methods: {
-        nextSlide() {
-            if (this.currentSlide === this.textos.length - 1) {
-                this.currentSlide = 0;
-            } else {
-                this.currentSlide++;
+        typeText() {
+            if (this.index < this.fullText.length) {
+                this.displayedText += this.fullText.charAt(this.index);
+                this.index++;
+                setTimeout(this.typeText, this.typingSpeed);
             }
         },
-        async enviarEmail(){
+        updateSuggestions() {
+            this.filteredSuggestions = this.suggestions.filter(suggestion =>
+                suggestion.toLowerCase().includes(this.query.toLowerCase())
+            );
+        },
+        selectSuggestion(suggestion) {
+            this.query = suggestion;
+            this.filteredSuggestions = [];
+        },
+        toggleSuggestions() {
+            if (this.filteredSuggestions.length === 0) {
+                this.filteredSuggestions = this.suggestions;
+            } else {
+                this.filteredSuggestions = [];
+            }
+        },
+        async searchAlbum() {
+            if (this.query.length) {
+                this.loadingData = true; // Establecer loadingData en true antes de la llamada a la API
+                const apiCall = this.apiService.getBasedAlbum(this.query, this.textAreaValue);
+                const delay = new Promise(resolve => setTimeout(resolve, 3000));
 
-            if (this.email=="" || this.name=="" || this.message=="") {
-                this.$toast.add({severity:'error', summary: 'El nombre, el mensaje o el email están vacíos',  life: 3000});
-            }else{
-                try{
-                    await this.userService.sendUserQuestionToBeelasy(this.nombre,this.message,this.email);
-                    this.$toast.add({severity:'success', summary: 'Successful', detail: 'Se ha enviado corréctamente', life: 3000});
-                }catch{
-                    this.$toast.add({severity:'error', summary: 'Ha habido un error en el mensaje',  life: 3000});
+                try {
+                    const response = await Promise.all([apiCall, delay]);
+                    console.log(response[0]); // La respuesta de la API está en response[0]
+                } catch (error) {
+                    console.error('Error fetching album data:', error);
+                } finally {
+                    this.loadingData = false; // Establecer loadingData en false después de que se completen la llamada a la API y el temporizador
                 }
             }
         }
@@ -146,10 +176,18 @@ export default {
     .left-content{
         width: 60%;
         height: 100%;
-        background-size: contain;
-        background-repeat: no-repeat;
-        background-position: center;
+        display: flex;
+        justify-content: center;
+        align-items: center
+    }
 
+    .cloud{
+        width: 80%;
+        height: 80%;
+        border: 1px solid black;
+        border-radius: 10px;
+        padding: 10px;
+        overflow-y: auto;
     }
 
     .right-content{
@@ -250,6 +288,59 @@ export default {
         height: auto;
         border-radius: 10px;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .autocomplete{
+        width: 25%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: row;
+    }
+
+
+
+    .autocomplete-container {
+        width: 25%;
+        display: flex;
+        flex-direction: row;
+        position: relative;
+    }
+
+    .autocomplete-input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .autocomplete-button {
+        margin-left: 10px;
+    }
+
+    .suggestions-list {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        border: 1px solid #ccc;
+        max-height: 150px;
+        overflow-y: auto;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: white;
+        z-index: 1;
+    }
+
+    .suggestions-list li {
+        padding: 5px;
+        cursor: pointer;
+    }
+
+    .suggestions-list li:hover {
+        background-color: #f0f0f0;
     }
 
     /*intro ----------------------------------------------------------intro*/
