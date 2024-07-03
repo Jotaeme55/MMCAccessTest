@@ -4,7 +4,7 @@
         <Toast />
         <div class="card-intro">
             <div class="title">
-                <h1>GenieTunes: Magic Search with Autocomplete</h1>
+                <h1 class="h1-title">GenieTunes: Magic Search with Autocomplete</h1>
             </div>
             <div class="content">
                 <div class="left-content" >
@@ -32,7 +32,7 @@
                 </div>
             </div>
             <div class="searchBar">
-                <h4 style="margin-right: 20px;">Select a singer or group</h4>
+                <h4 style="margin-right: 20px;" class="title-feature first-title">Select a singer or group</h4>
                 <div class="autocomplete-container" style="margin-right: 20px; position: relative;">
                     <input type="text" v-model="query" @input="updateSuggestions" placeholder="Type to search..." class="autocomplete-input"/>
                     <ul v-if="filteredSuggestions.length" class="suggestions-list">
@@ -43,10 +43,10 @@
                     <Button @click="toggleSuggestions" class="autocomplete-button"><i class="pi pi-arrow-down"></i></Button>
                 </div>
 
-                <h4 style="margin-right: 20px;">Tell me anything relevant</h4>
+                <h4 style="margin-right: 20px;" class="title-feature">Tell me anything relevant</h4>
                 <textarea style="margin-right: 20px;" v-model="textAreaValue" rows="5" cols="30"></textarea>
 
-                <Button label="Submit" @click="searchAlbum" />
+                <Button class="submit" label="Submit" @click="searchAlbum" />
             </div>
         </div>
     </section>
@@ -59,7 +59,6 @@
 </template>
 
 <script>
-import UserService from "../service/UserService";
 import apiService from "../service/apiService";
 export default {
 	data() {
@@ -85,9 +84,7 @@ export default {
         
     },
     apiService: null,
-    userService: null,
     async created() {
-        this.userService = new UserService;
         this.apiService =  new apiService;
 	},
 	mounted() {
@@ -383,5 +380,69 @@ export default {
 
     /*intro ----------------------------------------------------------intro*/
     
-     
+    @media (max-width: 768px) {
+    /* Estilos específicos para teléfonos y dispositivos móviles medianos */
+
+        .card-intro{
+            width: 90%;
+            height: 90%;
+        }
+
+        .title{
+            height: 5%;
+        }
+
+        .h1-title{
+            font-size: larger;
+            text-align: center;
+        }
+
+        .content{
+            width: 100%;
+        }
+
+        .left-content{
+            width: 60%;
+        }
+
+        .cloud{
+            width: 85%;
+        }
+
+        .right-content{
+            width: 40%;
+
+        }
+
+        .genius-block{
+            width: 100%
+        }
+
+        .genius{
+            height: 50%; 
+        }
+
+        .searchBar{
+            height: 40%;
+            flex-direction: column;
+        }
+
+        .autocomplete-container{
+            width: 80%;
+            height: 20%;
+        }
+
+        .first-title{
+            margin-top: 15px!important;
+        }
+
+        .title-feature{
+            font-size: medium;
+            
+        }
+
+        .submit{
+            margin-top: 10px
+        }
+    }
 </style>

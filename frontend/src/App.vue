@@ -26,7 +26,7 @@
 
 <script>
 import AppFooter from './AppFooter.vue';
-import UserService from "./service/UserService";
+
 
 export default {
     emits: ['change-theme'],
@@ -144,12 +144,10 @@ export default {
                     ]
                 }
             ]
-            ,userService: null,
         }
         
     },
     created(){
-        this.userService = new UserService;
     },
     watch: {   
         $route() {
@@ -236,17 +234,7 @@ export default {
         document.head.appendChild(meta);
   
 
-        if(window.location.search.includes('&code=')){
-			let urlParams = new URLSearchParams(window.location.search);
-			let code = urlParams.get('code');
-            const { data: encryptedToken } = await this.userService.sendGoogleCode(code);
-            let data = JSON.parse(this.userService.descifrarUsuarioYGuardar(encryptedToken));
-            this.$store.dispatch("saveEmail", data.email);
-            this.$store.dispatch("saveUserId", data.userId);
-            this.$store.dispatch("saveToken", data.token);
-            this.$store.dispatch("logIn");
-            this.$toast.add({severity:'success', summary: 'Successful', detail: 'Inicio de sesión correcto', life: 3000});
-        }
+        
     },
     computed: {
         containerClass() {
