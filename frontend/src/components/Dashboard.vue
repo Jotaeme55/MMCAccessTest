@@ -24,27 +24,32 @@
                             <img class="genius" src="images/genio-pensando.png" alt="genius-pensando">
                         </div>
                     </transition>
-                    <transition v-if="LoadedData" name="fade">
-                        <div v-if="LoadedData" class="genius-block">
+                    <transition v-if="!loadingData && LoadedData" name="fade">
+                        <div v-if="!loadingData && LoadedData" class="genius-block">
                             <img class="genius" src="images/genio-rock.png" alt="genius-pensando">
                         </div>
                     </transition>
                 </div>
             </div>
             <div class="searchBar">
-                <h4 style="margin-right: 20px;" class="title-feature first-title">Select a singer or group</h4>
-                <div class="autocomplete-container" style="margin-right: 20px; position: relative;">
-                    <input type="text" v-model="query" @input="updateSuggestions" placeholder="Type to search..." class="autocomplete-input"/>
-                    <ul v-if="filteredSuggestions.length" class="suggestions-list">
-                        <li v-for="(suggestion, index) in filteredSuggestions" :key="index" @click="selectSuggestion(suggestion)">
-                            {{ suggestion }}
-                        </li>
-                    </ul>
-                    <Button @click="toggleSuggestions" class="autocomplete-button"><i class="pi pi-arrow-down"></i></Button>
+                <div class="searchBar-funcionality">
+                    <h4 style="margin-right: 20px;" class="title-feature first-title">Select a singer or group</h4>
+                    <div class="autocomplete-container" style="margin-right: 20px; position: relative;">
+                        <input type="text" v-model="query" @input="updateSuggestions" placeholder="Type to search..." class="autocomplete-input"/>
+                        <ul v-if="filteredSuggestions.length" class="suggestions-list">
+                            <li v-for="(suggestion, index) in filteredSuggestions" :key="index" @click="selectSuggestion(suggestion)">
+                                {{ suggestion }}
+                            </li>
+                        </ul>
+                        <Button @click="toggleSuggestions" class="autocomplete-button"><i class="pi pi-arrow-down"></i></Button>
+                    </div>
+                </div>
+                
+                <div class="searchBar-funcionality">
+                    <h4 style="margin-right: 20px;" class="title-feature">Tell me anything relevant</h4>
+                    <textarea style="margin-right: 20px;" v-model="textAreaValue" rows="5" cols="30"></textarea>
                 </div>
 
-                <h4 style="margin-right: 20px;" class="title-feature">Tell me anything relevant</h4>
-                <textarea style="margin-right: 20px;" v-model="textAreaValue" rows="5" cols="30"></textarea>
 
                 <Button class="submit" label="Submit" @click="searchAlbum" />
             </div>
@@ -343,10 +348,20 @@ export default {
 
 
     .autocomplete-container {
-        width: 25%;
+        width: 100%;
         display: flex;
         flex-direction: row;
         position: relative;
+    }
+
+    .searchBar-funcionality{
+        width: 30%;
+        height: 95%;
+        margin-right: 50px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
     }
 
     .autocomplete-input {
@@ -433,9 +448,14 @@ export default {
             flex-direction: column;
         }
 
+        .searchBar-funcionality{
+            width: 70%;
+            margin-right: 0px;
+        }
+
         .autocomplete-container{
             width: 80%;
-            height: 20%;
+            height: 40%;
         }
 
         .first-title{
