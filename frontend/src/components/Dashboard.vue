@@ -118,37 +118,43 @@ export default {
             }
         },
         async searchAlbum() {
-            if (this.query.length) {
-                this.loadingData = true; // Establecer loadingData en true antes de la llamada a la API
+            if (this.query.length === 0 || !this.suggestions.includes(this.query)) {
+                this.$toast.add({severity: 'error', summary: 'Please select a group or singer', life: 3000});
+                return;
+            }
+
+            this.loadingData = true; // Establecer loadingData en true antes de la llamada a la API
+            this.index = 0;
+            this.displayedText = "";
+            this.fullText = "Jummmm...";
+            this.typeText();
+
+            try {
                 const apiCall = this.apiService.getBasedAlbum(this.query, this.textAreaValue);
                 const delay = new Promise(resolve => setTimeout(resolve, 3000));
-                this.index=0
-                this.displayedText = ""
-                this.fullText = "Jummmm..."
-                this.typeText()
+                const response = await Promise.all([apiCall, delay]);
 
-                try {
-                    const response = await Promise.all([apiCall, delay]);
-                    console.log(response[0]); // La respuesta de la API está en response[0]
-                    let recommendedAlbum = response[0]["recommended_album"]
-                    recommendedAlbum = JSON.parse(recommendedAlbum)
-                    if(response[0] && typeof response[0] === 'object' && Object.prototype.hasOwnProperty.call(response[0], 'Description')){
-                        this.fullText="I recommend you the album "+ recommendedAlbum["Name"] + " because " + recommendedAlbum["Reason"] + "\nFurthermore, " + response[0]["Description"]
-                    }else{
-                        this.fullText="I recommend you the album "+ recommendedAlbum["Name"] + " because " + recommendedAlbum["Reason"]
-                    }
-                    
-                    this.index=0
-                    this.displayedText = ""
-                    this.typeText()
-                } catch (error) {
-                    console.error('Error fetching album data:', error);
-                } finally {
-                    this.loadingData = false; // Establecer loadingData en false después de que se completen la llamada a la API y el temporizador
-                    this.LoadedData = true
+                console.log(response[0]); // La respuesta de la API está en response[0]
+
+                let recommendedAlbum = JSON.parse(response[0]["recommended_album"]);
+
+                if (response[0] && typeof response[0] === 'object' && Object.prototype.hasOwnProperty.call(response[0], 'Description')) {
+                    this.fullText = `I recommend you the album ${recommendedAlbum["Name"]} because ${recommendedAlbum["Reason"]}\nFurthermore, ${response[0]["Description"]}`;
+                } else {
+                    this.fullText = `I recommend you the album ${recommendedAlbum["Name"]} because ${recommendedAlbum["Reason"]}`;
                 }
+
+                this.index = 0;
+                this.displayedText = "";
+                this.typeText();
+            } catch (error) {
+                console.error('Error fetching album data:', error);
+            } finally {
+                this.loadingData = false; // Establecer loadingData en false después de que se completen la llamada a la API y el temporizador
+                this.LoadedData = true;
             }
         }
+
     },
 	computed: {
 	},
